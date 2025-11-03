@@ -1,4 +1,4 @@
-# SmartOPD
+# AI - Smart OPD
 Smart OPD is a web-based application designed to reduce outpatient waiting times and improve hospital efficiency. It streamlines the registration process, provides real-time queue updates, and enables email notifications for patients, while allowing doctors to manage consultations and emergency delays effectively.
 
 ## Tech Stack
