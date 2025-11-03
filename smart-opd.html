@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart OPD - Hospital Queue Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <style>
+        :root {
+            --primary: #2c7fb8;
+            --secondary: #7fcdbb;
+            --accent: #edf8b1;
+            --dark: #253237;
+            --light: #f8f9fa;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --gray: #6c757d;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo i {
+            font-size: 2rem;
+        }
+        
+        .logo h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 20px;
+        }
+        
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        
+        nav a:hover, nav a.active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning);
+            color: var(--dark);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        .hero {
+            background: linear-gradient(rgba(44, 127, 184, 0.8), rgba(127, 205, 187, 0.8)), url('https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 4rem 0;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .hero h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto 2rem;
+        }
+        
+        .card-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 2rem 0;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            transition: transform 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h3 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card i {
+            color: var(--secondary);
+        }
+        
+        .dashboard {
+            display: none;
+            margin: 2rem 0;
+        }
+        
+        .dashboard.active {
+            display: block;
+        }
+        
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .queue-status {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .queue-info {
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+            margin: 1.5rem 0;
+        }
+        
+        .queue-item {
+            flex: 1;
+            padding: 1rem;
+        }
+        
+        .queue-item h4 {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .estimated-time {
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+            margin: 1rem 0;
+            padding: 1rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .time-normal {
+            color: var(--success);
+            background: #d4edda;
+        }
+        
+        .time-warning {
+            color: var(--warning);
+            background: #fff3cd;
+        }
+        
+        .time-critical {
+            color: var(--danger);
+            background: #f8d7da;
+        }
+        
+        .patient-form {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .doctor-controls {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 1rem;
+        }
+        
+        .patient-list {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .patient-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .patient-item:last-child {
+            border-bottom: none;
+        }
+        
+        .patient-info h4 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .patient-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-waiting {
+            background-color: var(--warning);
+            color: var(--dark);
+        }
+        
+        .status-in-progress {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .status-completed {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        footer {
+            background-color: var(--dark);
+            color: white;
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+        
+        .footer-section {
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        .footer-section h3 {
+            margin-bottom: 1rem;
+            color: var(--secondary);
+        }
+        
+        .copyright {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .alert {
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .alert-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .alert-error {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .alert-info {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .user-type-selector {
+            display: flex;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+            overflow: hidden;
+            max-width: 400px;
+        }
+        
+        .user-type-selector button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: #f0f0f0;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .user-type-selector button.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .login-form {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .login-form h2 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+        }
+        
+        .notification-log {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-top: 2rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .log-entry {
+            padding: 10px;
+            border-left: 4px solid var(--primary);
+            margin: 10px 0;
+            background: #f8f9fa;
+        }
+        
+        .log-time {
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            nav ul {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .hero h2 {
+                font-size: 2rem;
+            }
+            
+            .queue-info {
+                flex-direction: column;
+            }
+            
+            .patient-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .patient-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+            
+            .dashboard-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-hospital-alt"></i>
+                    <h1>Smart OPD</h1>
+                </div>
+                <nav>
+                    <ul>
+                        <li><a href="#" class="active" data-tab="home">Home</a></li>
+                        <li><a href="#" data-tab="patient-dashboard">Patient Portal</a></li>
+                        <li><a href="#" data-tab="doctor-panel">Doctor Panel</a></li>
+                    </ul>
+                </nav>
+                <div class="auth-buttons">
+                    <button class="btn btn-primary" id="logout-btn" style="display: none;">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h2>Smart Outpatient Department Management</h2>
+            <p>Register for consultations and receive live delay notifications via email. Doctors can manage patient flow and consultation times.</p>
+            <button class="btn btn-primary" id="get-started-btn">
+                <i class="fas fa-play-circle"></i> Get Started
+            </button>
+        </div>
+    </section>
+
+    <section class="container">
+        <div class="card-container">
+            <div class="card">
+                <h3><i class="fas fa-user-plus"></i> Easy Registration</h3>
+                <p>Patients can quickly register for consultations with just name and email. No complex forms required.</p>
+            </div>
+            <div class="card">
+                <h3><i class="fas fa-bell"></i> Live Notifications</h3>
+                <p>Receive real-time email updates about your queue status, delays, and when it's your turn.</p>
+            </div>
+            <div class="card">
+                <h3><i class="fas fa-user-md"></i> Doctor Management</h3>
+                <p>Doctors can efficiently manage patient flow, consultation times, and handle emergencies.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="container">
+        <!-- Patient Dashboard -->
+        <div id="patient-dashboard" class="dashboard">
+            <div class="dashboard-header">
+                <h2>Patient Portal</h2>
+                <div>
+                    <button class="btn btn-primary" id="register-patient-btn">
+                        <i class="fas fa-user-plus"></i> Register for Consultation
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Patient Registration Form -->
+            <div class="patient-form">
+                <h3><i class="fas fa-edit"></i> Register for Consultation</h3>
+                <div class="form-group">
+                    <label for="patient-name">Full Name *</label>
+                    <input type="text" id="patient-name" class="form-control" placeholder="Enter your full name">
+                </div>
+                <div class="form-group">
+                    <label for="patient-email">Email Address *</label>
+                    <input type="email" id="patient-email" class="form-control" placeholder="your.email@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="patient-condition">Medical Concern (Optional)</label>
+                    <textarea id="patient-condition" class="form-control" placeholder="Brief description of your medical concern"></textarea>
+                </div>
+                <button id="register-patient" class="btn btn-primary">
+                    <i class="fas fa-check-circle"></i> Register Now
+                </button>
+                <div id="patient-registration-result" class="alert" style="display: none; margin-top: 10px;"></div>
+            </div>
+            
+            <!-- Queue Status for Registered Patients -->
+            <div class="queue-status" id="queue-status-section" style="display: none;">
+                <h3>Your Queue Status</h3>
+                <div class="queue-info">
+                    <div class="queue-item">
+                        <p>Your Token</p>
+                        <h4 id="token-number">#P001</h4>
+                    </div>
+                    <div class="queue-item">
+                        <p>Patients Ahead</p>
+                        <h4 id="patients-ahead">0</h4>
+                    </div>
+                    <div class="queue-item">
+                        <p>Current Token</p>
+                        <h4 id="current-token">#P001</h4>
+                    </div>
+                </div>
+                <div id="estimated-time" class="estimated-time time-normal">
+                    Estimated Waiting Time: <span id="wait-time">15</span> minutes
+                </div>
+                
+                <!-- Delay Status -->
+                <div id="delay-status" class="alert alert-info" style="display: none;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span id="delay-message"></span>
+                </div>
+            </div>
+            
+            <!-- Notification Log -->
+            <div class="notification-log">
+                <h3><i class="fas fa-history"></i> Notification History</h3>
+                <div id="notification-history">
+                    <div class="log-entry">
+                        <div class="log-time">System Ready</div>
+                        <div>Welcome to Smart OPD. Register to receive live notifications.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Doctor Panel -->
+        <div id="doctor-panel" class="dashboard">
+            <div class="dashboard-header">
+                <h2>Doctor Panel</h2>
+                <div>
+                    <button class="btn btn-warning" id="simulate-delay">
+                        <i class="fas fa-exclamation-triangle"></i> Simulate Emergency Delay
+                    </button>
+                    <button class="btn btn-primary" id="doctor-login-btn" style="display: none;">
+                        <i class="fas fa-sign-in-alt"></i> Login as Doctor
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Doctor Login Form -->
+            <div class="login-form" id="doctor-login-form">
+                <h2><i class="fas fa-user-md"></i> Doctor Login</h2>
+                <div class="form-group">
+                    <label for="doctor-email">Email</label>
+                    <input type="email" id="doctor-email" class="form-control" placeholder="doctor@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="doctor-password">Password</label>
+                    <input type="password" id="doctor-password" class="form-control" placeholder="Enter password">
+                </div>
+                <button id="doctor-login-submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+                <p style="text-align: center; margin-top: 15px; font-size: 0.9rem;">
+                    Demo credentials: doctor@example.com / doctor123
+                </p>
+            </div>
+            
+            <!-- Doctor Controls -->
+            <div class="doctor-controls" id="doctor-controls" style="display: none;">
+                <h3><i class="fas fa-cogs"></i> Queue Management</h3>
+                <div class="control-grid">
+                    <div class="form-group">
+                        <label for="consultation-time">Avg. Consultation Time (min)</label>
+                        <input type="number" id="consultation-time" class="form-control" value="15" min="5" max="60">
+                    </div>
+                    <div class="form-group">
+                        <label for="doctors-available">Doctors Available</label>
+                        <input type="number" id="doctors-available" class="form-control" value="2" min="1" max="10">
+                    </div>
+                    <div class="form-group">
+                        <label for="emergency-delay">Emergency Delay (min)</label>
+                        <input type="number" id="emergency-delay" class="form-control" value="0" min="0" max="120">
+                    </div>
+                </div>
+                <button id="update-settings" class="btn btn-primary">
+                    <i class="fas fa-sync-alt"></i> Update Settings
+                </button>
+            </div>
+            
+            <!-- Patient List -->
+            <div class="patient-list" id="patient-list-section" style="display: none;">
+                <h3><i class="fas fa-list"></i> Patient Queue</h3>
+                <div id="patients-list">
+                    <!-- Patient items will be dynamically added here -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Smart OPD</h3>
+                    <p>Transforming hospital outpatient experiences through efficient queue management and real-time notifications.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Contact Us</h3>
+                    <p>Email: support@smartopd.com</p>
+                    <p>Phone: +1 (555) 123-OPD</p>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2025 Smart OPD. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize EmailJS
+        emailjs.init("p87aZyocFNYgHJGat");
+
+        // Application State
+        const appState = {
+            currentUser: null,
+            userType: null,
+            currentWaitTime: 15,
+            previousWaitTime: 15,
+            isDelayActive: false,
+            delayMinutes: 0,
+            patients: [],
+            nextPatientId: 1,
+            consultationTime: 15,
+            doctorsAvailable: 2,
+            emailConfig: {
+                serviceID: 'service_rb2ixbk',
+                templateID: 'template_yc4rwag',
+                publicKey: 'p87aZyocFNYgHJGat'
+            }
+        };
+
+        // DOM Elements
+        const elements = {
+            waitTime: document.getElementById('wait-time'),
+            estimatedTime: document.getElementById('estimated-time'),
+            delayStatus: document.getElementById('delay-status'),
+            delayMessage: document.getElementById('delay-message'),
+            notificationHistory: document.getElementById('notification-history'),
+            patientsAhead: document.getElementById('patients-ahead'),
+            patientsList: document.getElementById('patients-list'),
+            queueStatusSection: document.getElementById('queue-status-section'),
+            doctorControls: document.getElementById('doctor-controls'),
+            patientListSection: document.getElementById('patient-list-section'),
+            doctorLoginForm: document.getElementById('doctor-login-form')
+        };
+
+        // Tab navigation
+        document.querySelectorAll('nav a').forEach(tab => {
+            tab.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                document.querySelectorAll('nav a').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                const tabName = this.getAttribute('data-tab');
+                document.querySelectorAll('.dashboard').forEach(d => d.classList.remove('active'));
+                
+                if (tabName === 'home') {
+                    document.querySelector('.hero').style.display = 'block';
+                    document.querySelector('.card-container').style.display = 'grid';
+                } else {
+                    document.querySelector('.hero').style.display = 'none';
+                    document.querySelector('.card-container').style.display = 'none';
+                    document.getElementById(tabName).classList.add('active');
+                    
+                    // Show doctor login if accessing doctor panel
+                    if (tabName === 'doctor-panel' && !appState.userType) {
+                        elements.doctorLoginForm.style.display = 'block';
+                        elements.doctorControls.style.display = 'none';
+                        elements.patientListSection.style.display = 'none';
+                    }
+                }
+            });
+        });
+
+        // Get Started button
+        document.getElementById('get-started-btn').addEventListener('click', function() {
+            document.querySelector('nav a[data-tab="patient-dashboard"]').click();
+        });
+
+        // Register Patient button
+        document.getElementById('register-patient-btn').addEventListener('click', function() {
+            document.getElementById('patient-name').focus();
+        });
+
+        // Register Patient
+        document.getElementById('register-patient').addEventListener('click', function() {
+            const name = document.getElementById('patient-name').value;
+            const email = document.getElementById('patient-email').value;
+            const condition = document.getElementById('patient-condition').value;
+            const resultDiv = document.getElementById('patient-registration-result');
+            
+            if (!name || !email) {
+                resultDiv.textContent = 'Please enter your name and email address';
+                resultDiv.className = 'alert alert-error';
+                resultDiv.style.display = 'block';
+                return;
+            }
+            
+            // Generate token
+            const token = `#P${appState.nextPatientId.toString().padStart(3, '0')}`;
+            
+            // Add patient to the list
+            const newPatient = {
+                id: appState.nextPatientId,
+                name,
+                email,
+                condition: condition || 'General Consultation',
+                token,
+                status: 'Waiting',
+                registrationTime: new Date()
+            };
+            
+            appState.patients.push(newPatient);
+            appState.nextPatientId++;
+            
+            // Show queue status
+            elements.queueStatusSection.style.display = 'block';
+            document.getElementById('token-number').textContent = token;
+            updateQueueStatus();
+            
+            // Send confirmation email
+            sendEmailNotification(email, {
+                patient_name: name,
+                token_number: token,
+                patients_ahead: appState.patients.filter(p => p.status === 'Waiting').length - 1,
+                wait_time: appState.currentWaitTime,
+                message: 'Thank you for registering with Smart OPD. You will receive notifications about your queue status and any delays.'
+            });
+            
+            resultDiv.textContent = `Registration successful! Your token is ${token}. You will receive email notifications.`;
+            resultDiv.className = 'alert alert-success';
+            resultDiv.style.display = 'block';
+            
+            // Clear form
+            document.getElementById('patient-name').value = '';
+            document.getElementById('patient-email').value = '';
+            document.getElementById('patient-condition').value = '';
+            
+            // Log notification
+            logNotification(`Patient ${name} registered with token ${token}`, 'success');
+            
+            // Update doctor panel if visible
+            if (appState.userType === 'doctor') {
+                renderPatientsList();
+            }
+            
+            setTimeout(() => {
+                resultDiv.style.display = 'none';
+            }, 5000);
+        });
+
+        // Doctor Login
+        document.getElementById('doctor-login-submit').addEventListener('click', function() {
+            const email = document.getElementById('doctor-email').value;
+            const password = document.getElementById('doctor-password').value;
+            
+            // Simple authentication for demo
+            if (email === 'doctor@example.com' && password === 'doctor123') {
+                appState.userType = 'doctor';
+                appState.currentUser = { name: 'Dr. Smith', email: email };
+                
+                // Show doctor controls and hide login form
+                elements.doctorLoginForm.style.display = 'none';
+                elements.doctorControls.style.display = 'block';
+                elements.patientListSection.style.display = 'block';
+                document.getElementById('logout-btn').style.display = 'block';
+                document.getElementById('doctor-login-btn').style.display = 'none';
+                
+                // Render patient list
+                renderPatientsList();
+                
+                logNotification('Doctor logged in successfully', 'success');
+            } else {
+                alert('Invalid credentials. Use: doctor@example.com / doctor123');
+            }
+        });
+
+        // Logout
+        document.getElementById('logout-btn').addEventListener('click', function() {
+            appState.userType = null;
+            appState.currentUser = null;
+            this.style.display = 'none';
+            document.getElementById('doctor-login-btn').style.display = 'inline-block';
+            
+            // Show login form
+            elements.doctorLoginForm.style.display = 'block';
+            elements.doctorControls.style.display = 'none';
+            elements.patientListSection.style.display = 'none';
+            
+            logNotification('User logged out', 'info');
+        });
+
+        // Update doctor settings
+        document.getElementById('update-settings').addEventListener('click', function() {
+            appState.consultationTime = parseInt(document.getElementById('consultation-time').value) || 15;
+            appState.doctorsAvailable = parseInt(document.getElementById('doctors-available').value) || 2;
+            appState.delayMinutes = parseInt(document.getElementById('emergency-delay').value) || 0;
+            
+            // Update wait times based on new settings
+            updateWaitTime();
+            
+            logNotification('Doctor settings updated', 'info');
+        });
+
+        // Simulate emergency delay
+        document.getElementById('simulate-delay').addEventListener('click', function() {
+            if (appState.userType !== 'doctor') {
+                alert('Please login as doctor first');
+                return;
+            }
+            
+            const delayInput = document.getElementById('emergency-delay');
+            if (appState.delayMinutes === 0) {
+                // Start delay
+                appState.delayMinutes = 30;
+                delayInput.value = 30;
+                this.innerHTML = '<i class="fas fa-check-circle"></i> End Emergency Delay';
+                this.className = 'btn btn-danger';
+                
+                // Notify all patients about delay
+                notifyAllPatientsAboutDelay();
+                
+                logNotification('Emergency delay started', 'warning');
+            } else {
+                // End delay
+                appState.delayMinutes = 0;
+                delayInput.value = 0;
+                this.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Simulate Emergency Delay';
+                this.className = 'btn btn-warning';
+                
+                // Notify all patients that delay is resolved
+                notifyAllPatientsDelayResolved();
+                
+                logNotification('Emergency delay ended', 'success');
+            }
+            
+            updateWaitTime();
+        });
+
+        // Update queue status
+        function updateQueueStatus() {
+            const waitingPatients = appState.patients.filter(p => p.status === 'Waiting').length;
+            const currentToken = appState.patients.find(p => p.status === 'In Progress')?.token || appState.patients[0]?.token || '#P001';
+            
+            document.getElementById('patients-ahead').textContent = waitingPatients;
+            document.getElementById('current-token').textContent = currentToken;
+            
+            // Update patient's position if they're in the queue
+            const patientToken = document.getElementById('token-number').textContent;
+            const patientIndex = appState.patients.findIndex(p => p.token === patientToken);
+            if (patientIndex !== -1) {
+                const ahead = patientIndex - appState.patients.findIndex(p => p.status === 'In Progress');
+                document.getElementById('patients-ahead').textContent = Math.max(0, ahead);
+            }
+        }
+
+        // Update wait time based on current conditions
+        function updateWaitTime() {
+            const baseTime = appState.consultationTime;
+            const patientsWaiting = appState.patients.filter(p => p.status === 'Waiting').length;
+            const doctors = appState.doctorsAvailable;
+            const delay = appState.delayMinutes;
+            
+            // Calculate estimated wait time
+            const estimatedTime = Math.ceil((patientsWaiting * baseTime) / doctors) + delay;
+            
+            appState.previousWaitTime = appState.currentWaitTime;
+            appState.currentWaitTime = estimatedTime;
+            
+            // Update display
+            elements.waitTime.textContent = estimatedTime;
+            
+            // Update color based on wait time
+            if (estimatedTime <= 20) {
+                elements.estimatedTime.className = 'estimated-time time-normal';
+            } else if (estimatedTime <= 45) {
+                elements.estimatedTime.className = 'estimated-time time-warning';
+            } else {
+                elements.estimatedTime.className = 'estimated-time time-critical';
+            }
+            
+            // Show delay status if active
+            if (appState.delayMinutes > 0) {
+                elements.delayStatus.style.display = 'block';
+                elements.delayMessage.textContent = `Due to an emergency, wait time has increased by ${appState.delayMinutes} minutes.`;
+            } else {
+                elements.delayStatus.style.display = 'none';
+            }
+            
+            // Check for significant changes and notify patients
+            checkForDelayChanges();
+        }
+
+        // Check for significant delay changes and notify patients
+        function checkForDelayChanges() {
+            const changeThreshold = 10; // minutes
+            const change = appState.currentWaitTime - appState.previousWaitTime;
+            
+            if (Math.abs(change) >= changeThreshold) {
+                if (change > 0) {
+                    // Delay increased significantly
+                    notifyAllPatientsAboutDelay();
+                } else {
+                    // Delay decreased significantly
+                    notifyAllPatientsDelayResolved();
+                }
+            }
+        }
+
+        // Render patients list for doctor panel
+        function renderPatientsList() {
+            if (!elements.patientsList) return;
+            
+            elements.patientsList.innerHTML = '';
+            
+            if (appState.patients.length === 0) {
+                elements.patientsList.innerHTML = '<p style="text-align: center; padding: 20px; color: var(--gray);">No patients in queue</p>';
+                return;
+            }
+            
+            appState.patients.forEach(patient => {
+                const patientItem = document.createElement('div');
+                patientItem.className = 'patient-item';
+                
+                patientItem.innerHTML = `
+                    <div class="patient-info">
+                        <h4>${patient.name} (${patient.token})</h4>
+                        <p>${patient.condition} | ${patient.email}</p>
+                        <small>Registered: ${patient.registrationTime.toLocaleTimeString()}</small>
+                    </div>
+                    <div class="patient-actions">
+                        <span class="status-badge status-${patient.status.toLowerCase().replace(' ', '-')}">
+                            ${patient.status}
+                        </span>
+                        <button class="btn btn-primary patient-action-btn" data-id="${patient.id}">
+                            ${patient.status === 'In Progress' ? 'Complete' : 'Start'}
+                        </button>
+                    </div>
+                `;
+                
+                elements.patientsList.appendChild(patientItem);
+            });
+            
+            // Add event listeners to patient action buttons
+            document.querySelectorAll('.patient-action-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const patientId = parseInt(this.getAttribute('data-id'));
+                    const patient = appState.patients.find(p => p.id === patientId);
+                    
+                    if (patient.status === 'Waiting') {
+                        // Start consultation
+                        patient.status = 'In Progress';
+                        this.textContent = 'Complete';
+                        this.className = 'btn btn-success patient-action-btn';
+                        logNotification(`Started consultation with ${patient.name}`, 'info');
+                    } else {
+                        // Complete consultation
+                        patient.status = 'Completed';
+                        this.textContent = 'Completed';
+                        this.className = 'btn btn-secondary patient-action-btn';
+                        this.disabled = true;
+                        logNotification(`Completed consultation with ${patient.name}`, 'success');
+                        
+                        // Send completion email
+                        sendEmailNotification(patient.email, {
+                            patient_name: patient.name,
+                            message: 'Your consultation is complete. Thank you for using Smart OPD.'
+                        });
+                    }
+                    
+                    updateQueueStatus();
+                    updateWaitTime();
+                });
+            });
+        }
+
+        // REAL Email Notification Function
+        async function sendEmailNotification(email, templateParams) {
+            try {
+                const fullTemplateParams = {
+                    to_email: email,
+                    ...templateParams
+                };
+
+                const response = await emailjs.send(
+                    appState.emailConfig.serviceID,
+                    appState.emailConfig.templateID,
+                    fullTemplateParams
+                );
+                
+                logNotification(`Email sent to ${email}`, 'success');
+                return { success: true, message: 'Email sent successfully' };
+            } catch (error) {
+                console.error('EmailJS Error:', error);
+                logNotification(`Failed to send email to ${email}`, 'error');
+                return { 
+                    success: false, 
+                    message: 'Failed to send email: ' + (error.text || 'Check configuration') 
+                };
+            }
+        }
+
+        // Notify all patients about delay
+        async function notifyAllPatientsAboutDelay() {
+            const waitingPatients = appState.patients.filter(p => p.status === 'Waiting');
+            
+            for (const patient of waitingPatients) {
+                const templateParams = {
+                    patient_name: patient.name,
+                    token_number: patient.token,
+                    patients_ahead: appState.patients.indexOf(patient) - appState.patients.findIndex(p => p.status === 'In Progress'),
+                    wait_time: appState.currentWaitTime,
+                    message: 'Due to an emergency, your estimated wait time has increased. We apologize for the inconvenience.'
+                };
+                
+                await sendEmailNotification(patient.email, templateParams);
+            }
+        }
+
+        // Notify all patients that delay is resolved
+        async function notifyAllPatientsDelayResolved() {
+            const waitingPatients = appState.patients.filter(p => p.status === 'Waiting');
+            
+            for (const patient of waitingPatients) {
+                const templateParams = {
+                    patient_name: patient.name,
+                    token_number: patient.token,
+                    patients_ahead: appState.patients.indexOf(patient) - appState.patients.findIndex(p => p.status === 'In Progress'),
+                    wait_time: appState.currentWaitTime,
+                    message: 'The emergency situation has been resolved. Your wait time has been updated accordingly.'
+                };
+                
+                await sendEmailNotification(patient.email, templateParams);
+            }
+        }
+
+        // Log notification to history
+        function logNotification(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.innerHTML = `
+                <div class="log-time">${timestamp}</div>
+                <div>${message}</div>
+            `;
+            
+            // Add color based on type
+            if (type === 'success') {
+                logEntry.style.borderLeftColor = 'var(--success)';
+            } else if (type === 'error') {
+                logEntry.style.borderLeftColor = 'var(--danger)';
+            } else if (type === 'warning') {
+                logEntry.style.borderLeftColor = 'var(--warning)';
+            }
+            
+            elements.notificationHistory.prepend(logEntry);
+            
+            // Keep only last 10 entries
+            const entries = elements.notificationHistory.querySelectorAll('.log-entry');
+            if (entries.length > 10) {
+                elements.notificationHistory.removeChild(entries[entries.length - 1]);
+            }
+        }
+
+        // Initialize the application
+        function init() {
+            // Set up email configuration
+            emailjs.init(appState.emailConfig.publicKey);
+            
+            // Add some sample patients for demo
+            appState.patients.push({
+                id: appState.nextPatientId++,
+                name: 'John Doe',
+                email: 'john.doe@example.com',
+                condition: 'Fever',
+                token: '#P001',
+                status: 'In Progress',
+                registrationTime: new Date()
+            });
+            
+            appState.patients.push({
+                id: appState.nextPatientId++,
+                name: 'Jane Smith',
+                email: 'jane.smith@example.com',
+                condition: 'Headache',
+                token: '#P002',
+                status: 'Waiting',
+                registrationTime: new Date(Date.now() - 10 * 60 * 1000) // 10 minutes ago
+            });
+            
+            // Initial UI updates
+            updateWaitTime();
+            
+            // Set up periodic updates
+            setInterval(() => {
+                updateWaitTime();
+                if (appState.userType === 'doctor') {
+                    renderPatientsList();
+                }
+            }, 30000); // Update every 30 seconds
+            
+            logNotification('Smart OPD system initialized', 'info');
+        }
+
+        // Start the application
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
