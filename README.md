@@ -25,3 +25,5 @@ Dynamic Queue Simulation
 EmailJS Integration
 
 Live Status Monitoring
+
+<img width="2865" height="1726" alt="Image" src="https://github.com/user-attachments/assets/63e1843c-9105-4c6a-bd34-1b31e61e1850" />
